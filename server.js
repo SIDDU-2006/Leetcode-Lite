@@ -29,3 +29,8 @@ app.get("/protected", protect, (req, res) => {
         userId: req.user
     });
 });
+
+//after creating pronlem model
+const problemRoutes = require("./routes/problemRoutes");
+
+app.use("/api/problems", problemRoutes);
