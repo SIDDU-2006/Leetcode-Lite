@@ -20,4 +20,12 @@ app.use(express.json());
 const authRoutes = require("./routes/authRoutes");
 app.use("/api/auth", authRoutes);
 
+//temp
+const protect = require("./middleware/authMiddleware");
 
+app.get("/protected", protect, (req, res) => {
+    res.json({
+        message: "You accessed a protected route!",
+        userId: req.user
+    });
+});
