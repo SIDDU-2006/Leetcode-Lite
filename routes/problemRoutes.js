@@ -1,3 +1,6 @@
+const protect = require("../middleware/authMiddleware");
+const adminOnly = require("../middleware/adminMiddleware");
+
 const express = require("express");
 const router = express.Router();
 
@@ -10,6 +13,6 @@ const {
   getProblemById 
 } = require("../controllers/problemController");
 
-router.post("/", createProblem);
+router.post("/", protect, adminOnly, createProblem);
 router.get("/", getAllProblems);
 router.get("/:id", getProblemById);
