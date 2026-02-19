@@ -34,3 +34,8 @@ app.get("/protected", protect, (req, res) => {
 const problemRoutes = require("./routes/problemRoutes");
 
 app.use("/api/problems", problemRoutes);
+
+//added after creating Submission Module
+const submissionRoutes = require("./routes/submissionRoutes");
+
+app.use("/api/submissions", submissionRoutes);
