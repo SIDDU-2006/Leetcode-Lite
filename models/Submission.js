@@ -28,7 +28,12 @@ const submissionSchema = new mongoose.Schema({
         type: String,
         enum: ["Accepted", "Wrong Answer", "Pending"],
         default: "Pending"
-    }
+    },
+    
+    executionTime: {
+  type: Number
+}
+
 
 }, { timestamps: true });
 
