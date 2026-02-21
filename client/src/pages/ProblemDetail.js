@@ -70,10 +70,17 @@ function ProblemDetail() {
       <button onClick={handleSubmit}>Submit</button>
 
       {result && (
-        <h3>
-          Result: {result}
-        </h3>
-      )}
+  <div style={{ marginTop: "20px" }}>
+    <h3>
+      Result:{" "}
+      <span style={{
+        color: result === "Accepted" ? "green" : "red"
+      }}>
+        {result}
+      </span>
+    </h3>
+  </div>
+)}
     </div>
   );
 }

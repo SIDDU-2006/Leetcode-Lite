@@ -25,10 +25,22 @@ function Problems() {
     fetchProblems();
   }, []);
 
+  //
+
   return (
     <div>
-      <h2>Problems</h2>
-
+      
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+   <h2>Problems</h2>
+    <button
+  onClick={() => {
+    localStorage.removeItem("token");
+    window.location.href = "/";
+  }}
+>
+  Logout
+</button>
+</div>
       {problems.map((problem) => (
         <div
           key={problem._id}
