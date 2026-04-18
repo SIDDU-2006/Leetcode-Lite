@@ -8,7 +8,9 @@ function ProblemDetail() {
   const [problem, setProblem] = useState(null);
   const [code, setCode] = useState("");
   const [result, setResult] = useState("");
+const [failedCase, setFailedCase] = useState(null); // ✅ NEW
   const [language, setLanguage] = useState("javascript");
+const [runOutput, setRunOutput] = useState("");
 
   //1st use effect
   useEffect(() => {
@@ -22,9 +24,10 @@ function ProblemDetail() {
       const data = await res.json();
       if (res.ok) setProblem(data);
     };
-
     fetchProblem();
   }, [id]);
+
+
 // added newly use effect
 useEffect(() => {
   if (language === "javascript") {
@@ -42,6 +45,8 @@ public class Main {
 }`);
   }
 }, [language]);
+
+
 //
   const handleSubmit = async () => {
     setResult("Running...");
@@ -63,6 +68,7 @@ public class Main {
 
     if (res.ok) {
       setResult(data.submission.status);
+setFailedCase(data.failedTestCase || null);
     } else {
       setResult("Error");
     }
@@ -70,84 +76,101 @@ public class Main {
 
   if (!problem) return <h3>Loading...</h3>;
 
-  return (
-    <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
 
-      {/* MAIN SPLIT */}
-      <div style={{ display: "flex", flex: 1 }}>
+  //
+  
+// add Run button
+const handleRun = async () => {
+  setRunOutput("Running...");
 
-        {/* LEFT PANEL (Problem) */}
-        <div style={{
-          flex: 1,
-          padding: "20px",
-          borderRight: "1px solid #ccc",
-          overflowY: "auto"
-        }}>
-          <h2>{problem.title}</h2>
-          <p><b>Difficulty:</b> {problem.difficulty}</p>
+  const res = await fetch("/api/submissions/run", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("token")}`
+    },
+    body: JSON.stringify({
+      code,
+      language,
+      input: problem.testCases[0]?.input || ""
+    })
+  });
 
-          <hr />
+  const data = await res.json();
 
-          <p>{problem.description}</p>
+  if (res.ok) {
+    setRunOutput(data.output || data.status);
+  } else {
+    setRunOutput("Error running code");
+  }
+};
 
-          {/* Optional examples */}
-          {problem.examples && (
-            <>
-              <h4>Examples:</h4>
-              <pre>{JSON.stringify(problem.examples, null, 2)}</pre>
-            </>
-          )}
+// Return part 
+return (
+  <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
+
+    {/* MAIN SPLIT */}
+    <div style={{ display: "flex", flex: 1 }}>
+
+      {/* LEFT PANEL */}
+      <div style={{
+        flex: 1,
+        padding: "20px",
+        borderRight: "1px solid #ccc",
+        overflowY: "auto"
+      }}>
+        <h2>{problem.title}</h2>
+        <p><b>Difficulty:</b> {problem.difficulty}</p>
+        <hr />
+        <p>{problem.description}</p>
+      </div>
+
+      {/* RIGHT PANEL */}
+      <div style={{
+        flex: 1,
+        padding: "20px",
+        display: "flex",
+        flexDirection: "column"
+      }}>
+
+        {/* Language */}
+        <div style={{ marginBottom: "10px" }}>
+          <select
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
+          >
+            <option value="javascript">JavaScript</option>
+            <option value="java">Java</option>
+          </select>
         </div>
 
-        {/* RIGHT PANEL (Editor) */}
-        <div style={{
-          flex: 1,
-          padding: "20px",
-          display: "flex",
-          flexDirection: "column"
-        }}>
+        {/* Monaco Editor */}
+        <Editor
+          height="100%"
+          theme="vs-dark"
+          language={language === "java" ? "java" : "javascript"}
+          value={code}
+          onChange={(value) => setCode(value || "")}
+        />
 
-          {/* Top controls */}
-          <div style={{ marginBottom: "10px" }}>
-            <select
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-            >
-              <option value="javascript">JavaScript</option>
-              <option value="java">Java</option>
-            </select>
-          </div>
-
-          {/* Code Editor */}
-
-          {/* //replacing placeholder with Monaco text editor like in VS code
-          <textarea
+        {/* Buttons */}
+        <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+          <button
+            onClick={handleRun}
             style={{
-              flex: 1,
-              width: "100%",
-              background: "#1e1e1e",
-              color: "#fff",
               padding: "10px",
-              fontFamily: "monospace",
-              fontSize: "14px"
+              background: "#007bff",
+              color: "#fff",
+              border: "none",
+              cursor: "pointer"
             }}
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            placeholder="// Write your code here..."
-          /> */}
-          <Editor
-  height="100%"
-  theme="vs-dark"
-  language={language === "java" ? "java" : "javascript"}
-  value={code}
-  onChange={(value) => setCode(value || "")}
-/>
+          >
+            Run
+          </button>
 
-          {/* Submit */}
           <button
             onClick={handleSubmit}
             style={{
-              marginTop: "10px",
               padding: "10px",
               background: "#28a745",
               color: "#fff",
@@ -158,26 +181,51 @@ public class Main {
             Submit
           </button>
         </div>
-      </div>
 
-      {/* BOTTOM RESULT PANEL */}
-      <div style={{
-        height: "120px",
-        borderTop: "1px solid #ccc",
-        padding: "10px",
-        background: "#111",
-        color: "#fff"
+      </div> {/* ✅ CLOSE RIGHT PANEL */}
+
+    </div> {/* ✅ CLOSE MAIN SPLIT */}
+
+    {/* BOTTOM PANEL */}
+    <div style={{
+      height: "200px",
+      borderTop: "1px solid #ccc",
+      padding: "10px",
+      background: "#111",
+      color: "#fff",
+      overflowY: "auto"
+    }}>
+      <b>Result:</b>{" "}
+      <span style={{
+        color: result === "Accepted" ? "lime" : "red"
       }}>
-        <b>Result:</b>{" "}
-        <span style={{
-          color: result === "Accepted" ? "lime" : "red"
-        }}>
-          {result}
-        </span>
-      </div>
+        {result}
+      </span>
 
+      {/* FAILED CASE */}
+      {failedCase && (
+        <div style={{
+          marginTop: "10px",
+          padding: "10px",
+          background: "#222",
+          borderRadius: "5px"
+        }}>
+          <p><b>Input:</b> {failedCase.input}</p>
+          <p><b>Expected:</b> {failedCase.expected}</p>
+          <p><b>Your Output:</b> {failedCase.got}</p>
+        </div>
+      )}
+
+      {/* RUN OUTPUT */}
+      {runOutput && (
+        <div style={{ marginTop: "10px" }}>
+          <b>Run Output:</b>
+          <pre style={{ color: "#0f0" }}>{runOutput}</pre>
+        </div>
+      )}
     </div>
-  );
-}
+
+  </div>
+);
 
 export default ProblemDetail;

@@ -10,5 +10,6 @@ const {
 
 router.post("/", protect, submitCode);
 router.get("/my", protect, getMySubmissions);
+router.post("/run", protect, runCode);
 
 module.exports = router;

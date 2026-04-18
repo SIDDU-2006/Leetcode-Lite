@@ -77,3 +77,38 @@ exports.getMySubmissions = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch submissions" });
   }
 };
+
+// Add run (sithout submit , without saving code)
+exports.runCode = async (req, res) => {
+  try {
+    const { code, language, input } = req.body;
+
+    let result;
+
+    if (language === "java") {
+      result = await executeJava(code, input);
+    } else if (language === "javascript") {
+      result = await executeJS(code, input);
+    } else {
+      return res.status(400).json({ message: "Unsupported language" });
+    }
+
+    if (result.error) {
+      return res.json({
+        status: "Runtime Error",
+        output: result.output
+      });
+    }
+
+    res.json({
+      status: "Success",
+      output: result.output
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      message: "Run failed",
+      error: err.message
+    });
+  }
+};
