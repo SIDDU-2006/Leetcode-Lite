@@ -21,7 +21,7 @@ function Login() {
 
     if (res.ok) {
       localStorage.setItem("token", data.token);
-      navigate("/problems");
+      navigate("/");
     } else {
       alert(data.message);
     }

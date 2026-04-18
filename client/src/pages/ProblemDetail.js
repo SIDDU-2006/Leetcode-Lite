@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import Editor from "@monaco-editor/react";
 
 function ProblemDetail() {
   const { id } = useParams();
+
   const [problem, setProblem] = useState(null);
   const [code, setCode] = useState("");
   const [result, setResult] = useState("");
+  const [language, setLanguage] = useState("javascript");
 
+  //1st use effect
   useEffect(() => {
     const fetchProblem = async () => {
       const res = await fetch(`/api/problems/${id}`, {
@@ -16,15 +20,32 @@ function ProblemDetail() {
       });
 
       const data = await res.json();
-      if (res.ok) {
-        setProblem(data);
-      }
+      if (res.ok) setProblem(data);
     };
 
     fetchProblem();
   }, [id]);
+// added newly use effect
+useEffect(() => {
+  if (language === "javascript") {
+    setCode(`function solve() {
+  // write your code here
+}`);
+  } else if (language === "java") {
+    setCode(`import java.util.*;
 
+public class Main {
+  public static void main(String[] args) {
+    Scanner sc = new Scanner(System.in);
+
+  }
+}`);
+  }
+}, [language]);
+//
   const handleSubmit = async () => {
+    setResult("Running...");
+
     const res = await fetch("/api/submissions", {
       method: "POST",
       headers: {
@@ -34,53 +55,127 @@ function ProblemDetail() {
       body: JSON.stringify({
         problemId: id,
         code,
-        language: "javascript"
+        language
       })
     });
 
     const data = await res.json();
 
     if (res.ok) {
-      setResult(data.status);
+      setResult(data.submission.status);
     } else {
-      setResult("Submission failed");
+      setResult("Error");
     }
   };
 
   if (!problem) return <h3>Loading...</h3>;
 
   return (
-    <div>
-      <h2>{problem.title}</h2>
-      <p>{problem.description}</p>
-      <p><strong>Difficulty:</strong> {problem.difficulty}</p>
+    <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
 
-      <h3>Write Your Code:</h3>
+      {/* MAIN SPLIT */}
+      <div style={{ display: "flex", flex: 1 }}>
 
-      <textarea
-        rows="10"
-        cols="60"
-        value={code}
-        onChange={(e) => setCode(e.target.value)}
-        placeholder="Write your solution here..."
-      />
+        {/* LEFT PANEL (Problem) */}
+        <div style={{
+          flex: 1,
+          padding: "20px",
+          borderRight: "1px solid #ccc",
+          overflowY: "auto"
+        }}>
+          <h2>{problem.title}</h2>
+          <p><b>Difficulty:</b> {problem.difficulty}</p>
 
-      <br /><br />
+          <hr />
 
-      <button onClick={handleSubmit}>Submit</button>
+          <p>{problem.description}</p>
 
-      {result && (
-  <div style={{ marginTop: "20px" }}>
-    <h3>
-      Result:{" "}
-      <span style={{
-        color: result === "Accepted" ? "green" : "red"
+          {/* Optional examples */}
+          {problem.examples && (
+            <>
+              <h4>Examples:</h4>
+              <pre>{JSON.stringify(problem.examples, null, 2)}</pre>
+            </>
+          )}
+        </div>
+
+        {/* RIGHT PANEL (Editor) */}
+        <div style={{
+          flex: 1,
+          padding: "20px",
+          display: "flex",
+          flexDirection: "column"
+        }}>
+
+          {/* Top controls */}
+          <div style={{ marginBottom: "10px" }}>
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+            >
+              <option value="javascript">JavaScript</option>
+              <option value="java">Java</option>
+            </select>
+          </div>
+
+          {/* Code Editor */}
+
+          {/* //replacing placeholder with Monaco text editor like in VS code
+          <textarea
+            style={{
+              flex: 1,
+              width: "100%",
+              background: "#1e1e1e",
+              color: "#fff",
+              padding: "10px",
+              fontFamily: "monospace",
+              fontSize: "14px"
+            }}
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder="// Write your code here..."
+          /> */}
+          <Editor
+  height="100%"
+  theme="vs-dark"
+  language={language === "java" ? "java" : "javascript"}
+  value={code}
+  onChange={(value) => setCode(value || "")}
+/>
+
+          {/* Submit */}
+          <button
+            onClick={handleSubmit}
+            style={{
+              marginTop: "10px",
+              padding: "10px",
+              background: "#28a745",
+              color: "#fff",
+              border: "none",
+              cursor: "pointer"
+            }}
+          >
+            Submit
+          </button>
+        </div>
+      </div>
+
+      {/* BOTTOM RESULT PANEL */}
+      <div style={{
+        height: "120px",
+        borderTop: "1px solid #ccc",
+        padding: "10px",
+        background: "#111",
+        color: "#fff"
       }}>
-        {result}
-      </span>
-    </h3>
-  </div>
-)}
+        <b>Result:</b>{" "}
+        <span style={{
+          color: result === "Accepted" ? "lime" : "red"
+        }}>
+          {result}
+        </span>
+      </div>
+
     </div>
   );
 }

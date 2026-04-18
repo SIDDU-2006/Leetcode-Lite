@@ -25,22 +25,41 @@ function Problems() {
     fetchProblems();
   }, []);
 
-  //
-
   return (
     <div>
-      
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-   <h2>Problems</h2>
-    <button
-  onClick={() => {
-    localStorage.removeItem("token");
-    window.location.href = "/";
-  }}
->
-  Logout
-</button>
-</div>
+      {/* ✅ HEADER */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "20px"
+        }}
+      >
+        <h2>Problems</h2>
+
+        <div>
+          {/* 🔥 NEW BUTTON */}
+          <button
+            onClick={() => navigate("/submissions")}
+            style={{ marginRight: "10px" }}
+          >
+            View Submissions
+          </button>
+
+          {/* LOGOUT */}
+          <button
+            onClick={() => {
+              localStorage.removeItem("token");
+              window.location.href = "/login";
+            }}
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+
+      {/* PROBLEM LIST */}
       {problems.map((problem) => (
         <div
           key={problem._id}
@@ -61,3 +80,12 @@ function Problems() {
 }
 
 export default Problems;
+
+//Now your app flow becomes:
+
+// Problems page
+// → View Submissions button
+// → Navigate to history
+// Clean top-right controls:
+// Submissions
+// Logout
