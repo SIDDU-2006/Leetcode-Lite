@@ -1,7 +1,7 @@
 const { executeJava, executeJS } = require("../services/executionService");
 const Problem = require("../models/Problem");
 const Submission = require("../models/Submission");
-
+const normalize = (str) => str.trim().replace(/\s+/g, " ");
 // ============================
 // SUBMIT CODE
 // ============================
@@ -35,7 +35,7 @@ exports.submitCode = async (req, res) => {
         break;
       }
 
-      if (result.output.trim() !== testCase.output.trim()) {
+      if (normalize(result.output) !== normalize(testCase.output)) {
         finalStatus = "Wrong Answer";
         break;
       }
